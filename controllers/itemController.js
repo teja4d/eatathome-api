@@ -12,6 +12,29 @@ exports.showItems = async (req, res) => {
   }
 };
 
+//insert items into database
+exports.insertItems = async (req, res) => {
+
+  try {
+    // Insert the sample data into the database
+    const items = await Item.updateMany({ photo: { $regex: '^public/' } }, [
+      {
+        $set: {
+          photo: {
+            $substr: ['$photo', 7, { $strLenCP: '$photo' }],
+          },
+        },
+      },
+    ]);
+    // Respond with a success message
+    res.status(201).json({ message: 'Items inserted', items });
+  } catch (error) {
+    // Handle potential errors
+    res
+      .status(500)
+      .json({ message: 'Error inserting items', error: error.message });
+  }
+};
 
 exports.showItem = async (req, res) => {
   try {
@@ -28,25 +51,28 @@ exports.showItem = async (req, res) => {
   }
 };
 
-
 exports.getItemsByCategory = async (req, res) => {
-    try {
-        // Extract the category from the URL parameter
-        const category = req.params.category;
+  try {
+    // Extract the category from the URL parameter
+    const category = req.params.category;
 
-        // Find items that have the requested category
-        const items = await Item.find({ category: category });
+    // Find items that have the requested category
+    const items = await Item.find({ category: category });
 
-        // If no items found, return an empty array
-        if (!items.length) {
-            return res.status(404).json({ message: 'No items found in this category' });
-        }
-
-        // Return the found items
-        res.json(items);
-    } catch (error) {
-        // Handle potential errors
-        res.status(500).json({ message: 'Error fetching items by category', error: error.message });
+    // If no items found, return an empty array
+    if (!items.length) {
+      return res
+        .status(404)
+        .json({ message: 'No items found in this category' });
     }
-};
 
+    // Return the found items
+    res.json(items);
+  } catch (error) {
+    // Handle potential errors
+    res.status(500).json({
+      message: 'Error fetching items by category',
+      error: error.message,
+    });
+  }
+};
